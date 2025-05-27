@@ -9,6 +9,9 @@ interface WishlistItem {
   price: number
   image: string
   category: string
+  sizes?: string[]
+  colors?: string[]
+  description?: string
 }
 
 interface WishlistState {
@@ -120,3 +123,5 @@ export function useWishlist() {
   }
   return context
 }
+
+export type { WishlistItem }

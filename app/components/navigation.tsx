@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import Link from "next/link"
 import { ShoppingBag, Menu, X, Search, User, Heart } from "lucide-react"
@@ -32,6 +33,13 @@ export default function Navigation() {
     setIsMenuOpen(false)
   }
 
+  const router = useRouter()
+
+const handleGenderFilter = (gender: string) => {
+  router.push(`/products?gender=${gender}`)
+}
+
+
   return (
     <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -46,12 +54,25 @@ export default function Navigation() {
             <Link href="/products" className="text-gray-700 hover:text-gray-900 transition-colors">
               All Products
             </Link>
-            <Link href="/products?category=men" className="text-gray-700 hover:text-gray-900 transition-colors">
-              Men
-            </Link>
-            <Link href="/products?category=women" className="text-gray-700 hover:text-gray-900 transition-colors">
-              Women
-            </Link>
+            <span
+            onClick={() => {
+              handleGenderFilter("Men")
+              setIsMenuOpen(false)
+            }}
+            className="cursor-pointer text-gray-700 hover:text-gray-900 py-2"
+          >
+           Men
+          </span>
+          <span
+            onClick={() => {
+             handleGenderFilter("Women")
+             setIsMenuOpen(false)
+            }}
+            className="cursor-pointer text-gray-700 hover:text-gray-900 py-2"
+          >
+           Women
+          </span>
+
           </div>
 
           {/* Search Bar */}

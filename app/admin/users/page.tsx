@@ -30,55 +30,29 @@ export default function UsersPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    // Mock data - replace with actual API call
-    const mockUsers: User[] = [
-      {
-        id: "1",
-        name: "John Doe",
-        email: "john@example.com",
-        role: "customer",
-        status: "active",
-        joinDate: "2024-01-15",
-        totalOrders: 5,
-        totalSpent: 299.95,
-      },
-      {
-        id: "2",
-        name: "Jane Smith",
-        email: "jane@example.com",
-        role: "customer",
-        status: "active",
-        joinDate: "2024-01-10",
-        totalOrders: 3,
-        totalSpent: 189.5,
-      },
-      {
-        id: "3",
-        name: "Admin User",
-        email: "admin@stylehub.com",
-        role: "admin",
-        status: "active",
-        joinDate: "2023-12-01",
-        totalOrders: 0,
-        totalSpent: 0,
-      },
-      {
-        id: "4",
-        name: "Mike Johnson",
-        email: "mike@example.com",
-        role: "customer",
-        status: "inactive",
-        joinDate: "2024-01-05",
-        totalOrders: 1,
-        totalSpent: 79.99,
-      },
-    ]
+useEffect(() => {
+  const fetchUsers = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+        },
+      })
+      if (!response.ok) throw new Error("Failed to fetch users")
+      const data: User[] = await response.json()
+      setUsers(data)
+      setFilteredUsers(data)
+    } catch (error) {
+      console.error("Error fetching users:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-    setUsers(mockUsers)
-    setFilteredUsers(mockUsers)
-    setIsLoading(false)
-  }, [])
+  fetchUsers()
+}, [])
+
 
   useEffect(() => {
     let filtered = users
@@ -235,7 +209,7 @@ export default function UsersPage() {
                   </TableCell>
                   <TableCell>{user.joinDate}</TableCell>
                   <TableCell>{user.totalOrders}</TableCell>
-                  <TableCell>${user.totalSpent.toFixed(2)}</TableCell>
+                  <TableCell>${(user.totalSpent ?? 0).toFixed(2)}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Dialog>

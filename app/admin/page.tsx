@@ -42,10 +42,9 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Simulate API calls - replace with your actual backend endpoints
         const [statsResponse, ordersResponse] = await Promise.all([
-          fetch("/api/admin/stats"),
-          fetch("/api/admin/recent-orders"),
+          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/stats`),
+          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/recent-orders`),
         ])
 
         if (statsResponse.ok && ordersResponse.ok) {

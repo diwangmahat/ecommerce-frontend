@@ -5,14 +5,16 @@ export default function Footer() {
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Company Info */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-bold">StyleHub</h3>
-            <p className="text-gray-300">
-              Your destination for premium fashion and style. Discover the latest trends and timeless classics.
-            </p>
-            <div className="flex space-x-4">
+          <div className="flex flex-col justify-between space-y-4">
+            <div>
+              <h3 className="text-xl font-bold">StyleHub</h3>
+              <p className="text-gray-300 mt-2">
+                Your destination for premium fashion and style. Discover the latest trends and timeless classics.
+              </p>
+            </div>
+            <div className="flex space-x-4 pt-4">
               <Facebook className="h-5 w-5 text-gray-300 hover:text-white cursor-pointer" />
               <Instagram className="h-5 w-5 text-gray-300 hover:text-white cursor-pointer" />
               <Twitter className="h-5 w-5 text-gray-300 hover:text-white cursor-pointer" />
@@ -32,25 +34,6 @@ export default function Footer() {
               </Link>
               <Link href="/products?category=women" className="block text-gray-300 hover:text-white">
                 Women's Fashion
-              </Link>
-            </div>
-          </div>
-
-          {/* Customer Service */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold">Customer Service</h4>
-            <div className="space-y-2">
-              <Link href="/contact" className="block text-gray-300 hover:text-white">
-                Contact Us
-              </Link>
-              <Link href="/shipping" className="block text-gray-300 hover:text-white">
-                Shipping Info
-              </Link>
-              <Link href="/returns" className="block text-gray-300 hover:text-white">
-                Returns
-              </Link>
-              <Link href="/size-guide" className="block text-gray-300 hover:text-white">
-                Size Guide
               </Link>
             </div>
           </div>

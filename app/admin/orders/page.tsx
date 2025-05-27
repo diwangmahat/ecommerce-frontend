@@ -10,18 +10,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Eye, Search } from "lucide-react"
 
+interface OrderItem {
+  name: string
+  quantity: number
+  price: number
+}
+
 interface Order {
-  id: string
-  customer: string
-  email: string
-  total: number
+  _id: string
+  user: { name: string; email: string }
+  totalPrice: number
   status: string
-  date: string
-  items: Array<{
-    name: string
-    quantity: number
-    price: number
-  }>
+  createdAt: string
+  orderItems: OrderItem[]
 }
 
 export default function OrdersPage() {
@@ -33,46 +34,34 @@ export default function OrdersPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Mock data - replace with actual API call
-    const mockOrders: Order[] = [
-      {
-        id: "ORD-001",
-        customer: "John Doe",
-        email: "john@example.com",
-        total: 129.99,
-        status: "completed",
-        date: "2024-01-15",
-        items: [
-          { name: "Premium T-Shirt", quantity: 2, price: 29.99 },
-          { name: "Denim Jacket", quantity: 1, price: 69.99 },
-        ],
-      },
-      {
-        id: "ORD-002",
-        customer: "Jane Smith",
-        email: "jane@example.com",
-        total: 89.5,
-        status: "processing",
-        date: "2024-01-15",
-        items: [{ name: "Summer Dress", quantity: 1, price: 89.5 }],
-      },
-      {
-        id: "ORD-003",
-        customer: "Mike Johnson",
-        email: "mike@example.com",
-        total: 199.99,
-        status: "shipped",
-        date: "2024-01-14",
-        items: [
-          { name: "Leather Bag", quantity: 1, price: 129.99 },
-          { name: "Wool Sweater", quantity: 1, price: 69.99 },
-        ],
-      },
-    ]
+    const fetchOrders = async () => {
+      setIsLoading(true)
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/orders`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          },
+        })
+        const data = await res.json()
 
-    setOrders(mockOrders)
-    setFilteredOrders(mockOrders)
-    setIsLoading(false)
+        const orderList = Array.isArray(data.orders) ? data.orders : data
+
+        if (Array.isArray(orderList)) {
+          setOrders(orderList)
+          setFilteredOrders(orderList)
+        } else {
+          console.error("Invalid orders format:", data)
+          setOrders([])
+          setFilteredOrders([])
+        }
+      } catch (err) {
+        console.error("Failed to fetch orders:", err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchOrders()
   }, [])
 
   useEffect(() => {
@@ -81,9 +70,9 @@ export default function OrdersPage() {
     if (searchTerm) {
       filtered = filtered.filter(
         (order) =>
-          order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.email.toLowerCase().includes(searchTerm.toLowerCase()),
+          order._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()),
       )
     }
 
@@ -111,8 +100,7 @@ export default function OrdersPage() {
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
-      // API call to update order status
-      const response = await fetch(`/api/orders/${orderId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/orders/${orderId}/deliver`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -122,10 +110,12 @@ export default function OrdersPage() {
       })
 
       if (response.ok) {
-        setOrders((prev) => prev.map((order) => (order.id === orderId ? { ...order, status: newStatus } : order)))
+        setOrders((prev) => prev.map((order) => (order._id === orderId ? { ...order, status: newStatus } : order)))
+      } else {
+        console.error("Failed to update status:", await response.text())
       }
     } catch (error) {
-      console.error("Failed to update order status:", error)
+      console.error("Error updating order status:", error)
     }
   }
 
@@ -149,7 +139,6 @@ export default function OrdersPage() {
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Orders</h1>
 
-      {/* Filters */}
       <Card>
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -178,7 +167,6 @@ export default function OrdersPage() {
         </CardContent>
       </Card>
 
-      {/* Orders Table */}
       <Card>
         <CardHeader>
           <CardTitle>All Orders ({filteredOrders.length})</CardTitle>
@@ -196,74 +184,75 @@ export default function OrdersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredOrders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id}</TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{order.customer}</p>
-                      <p className="text-sm text-gray-500">{order.email}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>${order.total}</TableCell>
-                  <TableCell>
-                    <Select value={order.status} onValueChange={(value) => updateOrderStatus(order.id, value)}>
-                      <SelectTrigger className="w-[120px]">
-                        <Badge className={getStatusColor(order.status)}>{order.status}</Badge>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="processing">Processing</SelectItem>
-                        <SelectItem value="shipped">Shipped</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>{order.date}</TableCell>
-                  <TableCell>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="ghost" size="sm" onClick={() => setSelectedOrder(order)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Order Details - {order.id}</DialogTitle>
-                        </DialogHeader>
-                        {selectedOrder && (
-                          <div className="space-y-4">
-                            <div>
-                              <h4 className="font-semibold">Customer Information</h4>
-                              <p>{selectedOrder.customer}</p>
-                              <p className="text-sm text-gray-500">{selectedOrder.email}</p>
-                            </div>
-                            <div>
-                              <h4 className="font-semibold">Order Items</h4>
-                              <div className="space-y-2">
-                                {selectedOrder.items.map((item, index) => (
-                                  <div key={index} className="flex justify-between">
-                                    <span>
-                                      {item.name} x{item.quantity}
-                                    </span>
-                                    <span>${(item.price * item.quantity).toFixed(2)}</span>
-                                  </div>
-                                ))}
+              {Array.isArray(filteredOrders) &&
+                filteredOrders.map((order) => (
+                  <TableRow key={order._id}>
+                    <TableCell className="font-medium">{order._id}</TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{order.user?.name}</p>
+                        <p className="text-sm text-gray-500">{order.user?.email}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>${order.totalPrice.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <Select value={order.status} onValueChange={(value) => updateOrderStatus(order._id, value)}>
+                        <SelectTrigger className="w-[120px]">
+                          <Badge className={getStatusColor(order.status)}>{order.status}</Badge>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="processing">Processing</SelectItem>
+                          <SelectItem value="shipped">Shipped</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="sm" onClick={() => setSelectedOrder(order)}>
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Order Details - {order._id}</DialogTitle>
+                          </DialogHeader>
+                          {selectedOrder && (
+                            <div className="space-y-4">
+                              <div>
+                                <h4 className="font-semibold">Customer Information</h4>
+                                <p>{selectedOrder.user?.name}</p>
+                                <p className="text-sm text-gray-500">{selectedOrder.user?.email}</p>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold">Order Items</h4>
+                                <div className="space-y-2">
+                                  {selectedOrder.orderItems.map((item, index) => (
+                                    <div key={index} className="flex justify-between">
+                                      <span>
+                                        {item.name} x{item.quantity}
+                                      </span>
+                                      <span>${(item.price * item.quantity).toFixed(2)}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="border-t pt-2">
+                                <div className="flex justify-between font-semibold">
+                                  <span>Total</span>
+                                  <span>${selectedOrder.totalPrice.toFixed(2)}</span>
+                                </div>
                               </div>
                             </div>
-                            <div className="border-t pt-2">
-                              <div className="flex justify-between font-semibold">
-                                <span>Total</span>
-                                <span>${selectedOrder.total}</span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </DialogContent>
-                    </Dialog>
-                  </TableCell>
-                </TableRow>
-              ))}
+                          )}
+                        </DialogContent>
+                      </Dialog>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </CardContent>

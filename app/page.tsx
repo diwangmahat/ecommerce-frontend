@@ -27,7 +27,7 @@ export default function HomePage() {
         setError(null)
 
         const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://ecommerce-backend-340r.onrender.com"
-        const res = await fetch(`${apiUrl}/api/products?featured=true&limit=4`)
+        const res = await fetch(`${apiUrl}/api/products?limit=4`)
 
         if (!res.ok) {
           throw new Error(`Failed to fetch products: ${res.status}`)
@@ -86,34 +86,53 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[70vh] bg-gradient-to-r from-gray-900 to-gray-700 flex items-center justify-center text-white">
-        <div className="absolute inset-0 bg-black opacity-40"></div>
-        <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6">
-            Style Meets <span className="text-blue-400">Comfort</span>
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 text-gray-200">
-            Discover our premium collection of clothing and accessories designed for the modern lifestyle
-          </p>
-          <div className="space-x-4">
-            <Link href="/products">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3">
-                Shop Now
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Link href="/products?category=new">
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-white text-white hover:bg-white hover:text-gray-900 px-8 py-3"
-              >
-                New Arrivals
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <section className="relative h-[70vh] w-full overflow-hidden text-white">
+  {/* Local Video */}
+  <video
+    className="absolute inset-0 w-full h-full object-cover z-0"
+    autoPlay
+    muted
+    loop
+    playsInline
+  >
+    <source src="/video/hero-video.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+
+  {/* Blur overlay */}
+  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-10"></div>
+
+  {/* Text content */}
+  <div className="relative z-20 flex items-center justify-center h-full text-center px-4 max-w-4xl mx-auto">
+    <div>
+      <h1 className="text-5xl md:text-7xl font-bold mb-6">
+        Style Meets <span className="text-blue-400">Comfort</span>
+      </h1>
+      <p className="text-xl md:text-2xl mb-8 text-gray-200">
+        Discover our premium collection of clothing and accessories designed for the modern lifestyle
+      </p>
+      <div className="space-x-4">
+        <Link href="/products">
+          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3">
+            Shop Now
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+        </Link>
+        <Link href="/products?category=new">
+          <Button
+            variant="outline"
+            size="lg"
+            className="border-white text-black hover:bg-gray-700 hover:text-white px-8 py-3"
+          >
+            New Arrivals
+          </Button>
+        </Link>
+      </div>
+    </div>
+  </div>
+</section>
+
+
 
       {/* Features Section */}
       <section className="py-16 bg-gray-50">

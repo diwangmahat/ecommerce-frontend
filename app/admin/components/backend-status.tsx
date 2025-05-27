@@ -29,7 +29,7 @@ export default function BackendStatus() {
   const checkBackendStatus = async () => {
     const startTime = Date.now()
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL}/api/health`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/health`)
       const endTime = Date.now()
 
       if (response.ok) {
