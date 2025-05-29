@@ -10,6 +10,7 @@ export interface Product {
   price: number
   image: string
   category: string
+  gender?: string  // Added gender property
   size: string[]
   color: string[]
   description: string

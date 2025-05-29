@@ -35,10 +35,9 @@ export default function Navigation() {
 
   const router = useRouter()
 
-const handleGenderFilter = (gender: string) => {
-  router.push(`/products?gender=${gender}`)
-}
-
+  const handleGenderFilter = (gender: string) => {
+    router.push(`/products?gender=${gender}`)
+  }
 
   return (
     <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
@@ -55,24 +54,23 @@ const handleGenderFilter = (gender: string) => {
               All Products
             </Link>
             <span
-            onClick={() => {
-              handleGenderFilter("Men")
-              setIsMenuOpen(false)
-            }}
-            className="cursor-pointer text-gray-700 hover:text-gray-900 py-2"
-          >
-           Men
-          </span>
-          <span
-            onClick={() => {
-             handleGenderFilter("Women")
-             setIsMenuOpen(false)
-            }}
-            className="cursor-pointer text-gray-700 hover:text-gray-900 py-2"
-          >
-           Women
-          </span>
-
+              onClick={() => {
+                handleGenderFilter("Men")
+                setIsMenuOpen(false)
+              }}
+              className="cursor-pointer text-gray-700 hover:text-gray-900 py-2 transition-colors"
+            >
+              Men
+            </span>
+            <span
+              onClick={() => {
+                handleGenderFilter("Women")
+                setIsMenuOpen(false)
+              }}
+              className="cursor-pointer text-gray-700 hover:text-gray-900 py-2 transition-colors"
+            >
+              Women
+            </span>
           </div>
 
           {/* Search Bar */}
@@ -172,20 +170,24 @@ const handleGenderFilter = (gender: string) => {
               >
                 All Products
               </Link>
-              <Link
-                href="/products?category=men"
-                className="text-gray-700 hover:text-gray-900 py-2"
-                onClick={() => setIsMenuOpen(false)}
+              <span
+                onClick={() => {
+                  handleGenderFilter("Men")
+                  setIsMenuOpen(false)
+                }}
+                className="cursor-pointer text-gray-700 hover:text-gray-900 py-2"
               >
                 Men
-              </Link>
-              <Link
-                href="/products?category=women"
-                className="text-gray-700 hover:text-gray-900 py-2"
-                onClick={() => setIsMenuOpen(false)}
+              </span>
+              <span
+                onClick={() => {
+                  handleGenderFilter("Women")
+                  setIsMenuOpen(false)
+                }}
+                className="cursor-pointer text-gray-700 hover:text-gray-900 py-2"
               >
                 Women
-              </Link>
+              </span>
 
               <div className="flex flex-col space-y-2 pt-4 border-t">
                 {authState.isAuthenticated ? (

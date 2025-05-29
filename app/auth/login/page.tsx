@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Mail, Lock } from "lucide-react"
 import { useAuth } from "../../context/auth-context"
-import React from "react"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -18,38 +17,27 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const { login, state } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get("redirect") || (state.user?.role === "admin" ? "/admin" : "/")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
 
     const result = await login(email, password)
-
-    if (result.success) {
-      // Check user role from auth state after successful login
-      // We need to wait a bit for the state to update
-      setTimeout(() => {
-        if (state.user?.role === "admin") {
-          router.push("/admin")
-        } else {
-          router.push("/")
-        }
-      }, 100)
-    } else {
+    if (!result.success) {
       setError(result.message || "Login failed. Please try again.")
     }
+    // No redirect here; let useEffect handle it
   }
 
-  // Check if user is already authenticated and redirect accordingly
-  React.useEffect(() => {
+  // Redirect if user is authenticated
+  useEffect(() => {
     if (state.isAuthenticated && state.user && !state.isLoading) {
-      if (state.user.role === "admin") {
-        router.push("/admin")
-      } else {
-        router.push("/")
-      }
+      console.log("Redirecting to:", redirect) // Debugging
+      router.push(redirect) // Removed 'as const'
     }
-  }, [state.isAuthenticated, state.user, state.isLoading, router])
+  }, [state.isAuthenticated, state.user, state.isLoading, router, redirect])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -124,7 +112,7 @@ export default function LoginPage() {
             <div className="border-t pt-4">
               <p className="text-xs text-gray-500 text-center mb-2">Connected to Backend:</p>
               <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded text-center">
-                ecommerce-backend-340r.onrender.com/api/auth/login
+                {process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/login
               </div>
             </div>
           </div>
