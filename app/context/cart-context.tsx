@@ -10,8 +10,8 @@ export interface Product {
   price: number
   image: string
   category: string
-  sizes: string[]
-  colors: string[]
+  size: string[]
+  color: string[]
   description: string
 }
 

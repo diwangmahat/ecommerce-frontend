@@ -6,7 +6,13 @@ import { useRouter } from "next/navigation"
 import { useCart, type Product } from "../../context/cart-context"
 import { useWishlist } from "../../context/wishlist-context"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Heart, Share2, Truck, RotateCcw, Shield } from "lucide-react"
 
 export default function ProductPage({ params }: { params: { id: string } }) {
@@ -28,15 +34,27 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       try {
         setLoading(true)
         setError(null)
+
         const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://ecommerce-backend-340r.onrender.com"
         const res = await fetch(`${apiUrl}/api/products/${params.id}`)
 
-        if (!res.ok) throw new Error(`Failed to fetch product: ${res.status}`)
+        if (!res.ok) {
+          throw new Error(`Failed to fetch product: ${res.status}`)
+        }
 
         const data = await res.json()
-        setProduct(data)
+
+        const normalizedProduct: Product = {
+          ...data,
+          size: Array.isArray(data.size) ? data.size : [],
+          color: Array.isArray(data.color) ? data.color : [],
+        }
+
+        setProduct(normalizedProduct)
+        if (normalizedProduct.size.length > 0) setSelectedSize(normalizedProduct.size[0])
+        if (normalizedProduct.color.length > 0) setSelectedColor(normalizedProduct.color[0])
       } catch (err) {
-        console.error("Error fetching product:", err)
+        console.error("Failed to fetch product:", err)
         setError("Failed to load product. Please try again.")
       } finally {
         setLoading(false)
@@ -119,23 +137,25 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <div className="space-y-4">
-            <div className="aspect-square bg-gray-200 rounded-lg"></div>
-            <div className="grid grid-cols-4 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="aspect-square bg-gray-200 rounded-lg"></div>
-              ))}
-            </div>
-          </div>
-          <div className="space-y-6">
-            <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="animate-pulse">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div className="space-y-4">
-              <div className="h-10 bg-gray-200 rounded"></div>
-              <div className="h-10 bg-gray-200 rounded"></div>
-              <div className="h-10 bg-gray-200 rounded w-24"></div>
+              <div className="aspect-square bg-gray-200 rounded-lg"></div>
+              <div className="grid grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="aspect-square bg-gray-200 rounded-lg"></div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-6">
+              <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+              <div className="space-y-4">
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-10 bg-gray-200 rounded w-24"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -145,20 +165,24 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-600 mb-4">{error}</p>
-        <Button onClick={() => window.location.reload()}>Try Again</Button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-12">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </div>
       </div>
     )
   }
 
   if (!product) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-600">Product not found</p>
-        <Button onClick={() => router.push("/products")} className="mt-4">
-          Browse Products
-        </Button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-12">
+          <p className="text-gray-600">Product not found</p>
+          <Button onClick={() => router.push("/products")} className="mt-4">
+            Browse Products
+          </Button>
+        </div>
       </div>
     )
   }
@@ -166,34 +190,34 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Images */}
+        {/* Product Images */}
         <div className="space-y-4">
           <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
             <Image
-              src={product.image || "/placeholder.svg?height=600&width=600"}
+              src={Array.isArray(product.image) ? product.image[0] : (product.image || "/placeholder.svg?height=600&width=600")}
               alt={product.name}
               fill
               className="object-cover"
             />
           </div>
           <div className="grid grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="relative aspect-square overflow-hidden rounded-lg bg-gray-100 cursor-pointer hover:opacity-75 transition-opacity"
-              >
-                <Image
-                  src={product.image || `/placeholder.svg?height=150&width=150`}
-                  alt={`${product.name} view ${i + 1}`}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ))}
+            {Array.isArray(product.image) ? (
+              product.image.map((img, i) => (
+                <div key={i} className="relative aspect-square overflow-hidden rounded-lg bg-gray-100 cursor-pointer hover:opacity-75 transition-opacity">
+                  <Image src={img} alt={`${product.name} view ${i + 1}`} fill className="object-cover" />
+                </div>
+              ))
+            ) : (
+              [1, 2, 3, 4].map((i) => (
+                <div key={i} className="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
+                  <Image src={product.image || "/placeholder.svg"} alt={`placeholder ${i}`} fill className="object-cover" />
+                </div>
+              ))
+            )}
           </div>
         </div>
 
-        {/* Info */}
+        {/* Product Info */}
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
@@ -203,7 +227,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
           <div className="space-y-4">
             {/* Size */}
-            {product.sizes?.length ? (
+            {Array.isArray(product.size) && product.size.length > 0 && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
                 <Select value={selectedSize} onValueChange={setSelectedSize}>
@@ -211,18 +235,16 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                     <SelectValue placeholder="Select size" />
                   </SelectTrigger>
                   <SelectContent>
-                    {product.sizes.map((size) => (
-                      <SelectItem key={size} value={size}>
-                        {size}
-                      </SelectItem>
+                    {product.size.map((size) => (
+                      <SelectItem key={size} value={size}>{size}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-            ) : null}
+            )}
 
             {/* Color */}
-            {product.colors?.length ? (
+            {Array.isArray(product.color) && product.color.length > 0 && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
                 <Select value={selectedColor} onValueChange={setSelectedColor}>
@@ -230,78 +252,49 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                     <SelectValue placeholder="Select color" />
                   </SelectTrigger>
                   <SelectContent>
-                    {product.colors.map((color) => (
-                      <SelectItem key={color} value={color}>
-                        {color}
-                      </SelectItem>
+                    {product.color.map((color) => (
+                      <SelectItem key={color} value={color}>{color}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-            ) : null}
-
-            {/* Quantity */}
+            )}
+          </div>
+           {/* Quantity */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-              <Select value={quantity.toString()} onValueChange={(value) => setQuantity(Number(value))}>
-                <SelectTrigger className="w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[...Array(10)].map((_, i) => (
-                    <SelectItem key={i + 1} value={(i + 1).toString()}>
-                      {i + 1}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <input
+                type="number"
+                min={1}
+                value={quantity}
+                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                className="w-24 border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
-          </div>
 
-          <div className="space-y-3">
-            <Button onClick={handleBuyNow} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3" size="lg">
-              Buy Now
+          <div className="flex items-center space-x-4">
+            <Button onClick={handleAddToCart}>Add to Cart</Button>
+            <Button onClick={handleBuyNow} variant="outline">Buy Now</Button>
+            <Button variant="ghost" onClick={handleWishlistToggle} size="icon">
+              <Heart className={`w-5 h-5 ${isProductInWishlist ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
             </Button>
-            <Button onClick={handleAddToCart} variant="outline" className="w-full py-3" size="lg">
-              Add to Cart
-            </Button>
-          </div>
-
-          <div className="flex space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`flex items-center space-x-2 ${
-                isProductInWishlist ? "text-red-600 hover:text-red-700" : "text-gray-600 hover:text-gray-700"
-              }`}
-              onClick={handleWishlistToggle}
-            >
-              <Heart className={`h-4 w-4 ${isProductInWishlist ? "fill-current" : ""}`} />
-              <span>{isProductInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}</span>
-            </Button>
-            <Button variant="ghost" size="sm" className="flex items-center space-x-2" onClick={handleShare}>
-              <Share2 className="h-4 w-4" />
-              <span>Share</span>
+            <Button variant="ghost" onClick={handleShare} size="icon">
+              <Share2 className="w-5 h-5 text-gray-500" />
             </Button>
           </div>
 
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold mb-3">Product Details</h3>
-            <p className="text-gray-600 leading-relaxed">{product.description}</p>
-          </div>
-
-          <div className="border-t pt-6 space-y-4">
-            <div className="flex items-center space-x-3">
-              <Truck className="h-5 w-5 text-green-600" />
-              <span className="text-sm text-gray-600">Free shipping on orders over $50</span>
+          <div className="border-t border-gray-200 pt-4 space-y-2 text-sm text-gray-600">
+            <div className="flex items-center space-x-2">
+              <Truck className="w-4 h-4" />
+              <span>Free shipping on orders over $50</span>
             </div>
-            <div className="flex items-center space-x-3">
-              <RotateCcw className="h-5 w-5 text-blue-600" />
-              <span className="text-sm text-gray-600">30-day return policy</span>
+            <div className="flex items-center space-x-2">
+              <RotateCcw className="w-4 h-4" />
+              <span>30-day return policy</span>
             </div>
-            <div className="flex items-center space-x-3">
-              <Shield className="h-5 w-5 text-purple-600" />
-              <span className="text-sm text-gray-600">2-year warranty included</span>
+            <div className="flex items-center space-x-2">
+              <Shield className="w-4 h-4" />
+              <span>Secure payment</span>
             </div>
           </div>
         </div>

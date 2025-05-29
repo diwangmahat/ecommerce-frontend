@@ -194,7 +194,9 @@ export default function OrdersPage() {
                         <p className="text-sm text-gray-500">{order.user?.email}</p>
                       </div>
                     </TableCell>
-                    <TableCell>${order.totalPrice.toFixed(2)}</TableCell>
+                    <TableCell>
+                      {typeof order.totalPrice === "number" ? `$${order.totalPrice.toFixed(2)}` : "N/A"}
+                    </TableCell>
                     <TableCell>
                       <Select value={order.status} onValueChange={(value) => updateOrderStatus(order._id, value)}>
                         <SelectTrigger className="w-[120px]">
